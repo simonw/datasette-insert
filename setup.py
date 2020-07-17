@@ -28,9 +28,7 @@ setup(
     version=VERSION,
     packages=["datasette_update_api"],
     entry_points={"datasette": ["update_api = datasette_update_api"]},
-    install_requires=["datasette"],
-    extras_require={
-        "test": ["pytest", "pytest-asyncio", "httpx"]
-    },
+    install_requires=["datasette", "sqlite-utils"],
+    extras_require={"test": ["pytest", "pytest-asyncio", "httpx"]},
     tests_require=["datasette-update-api[test]"],
 )
