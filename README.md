@@ -14,7 +14,67 @@ Install this plugin in the same environment as Datasette.
 
 ## Usage
 
-Usage instructions go here.
+Having installed the plugin, data can be inserted or updated and tables can be created by POSTing JSON data to the following URL:
+
+    /-/update/name-of-database/name-of-table
+
+The JSON should look like this:
+
+```json
+[
+    {
+        "id": 1,
+        "name": "Cleopaws",
+        "age": 5
+    },
+    {
+        "id": 2,
+        "name": "Pancakes",
+        "age": 5
+    }
+]
+```
+
+The first time data is posted to the URL a table of that name will be created if it does not aready exist, with the desired columns.
+
+You can specify which column should be used as the primary key using the `?pk=` URL argument.
+
+Here's how to POST to a database and create a new table using the Python `requests` library:
+
+```python
+import requests
+
+requests.post("http://localhost:8001/-/update/unsafe/dogs?pk=id", json=[
+    {
+        "id": 1,
+        "name": "Cleopaws",
+        "age": 5
+    },
+    {
+        "id": 2,
+        "name": "Pancakes",
+        "age": 4
+    }
+])
+```
+And here's how to do the same thing using `curl`:
+
+```
+curl --request POST \
+  --data '[
+      {
+        "id": 1,
+        "name": "Cleopaws",
+        "age": 5
+      },
+      {
+        "id": 2,
+        "name": "Pancakes",
+        "age": 4
+      }
+    ]' \
+    'http://localhost:8001/-/update/unsafe/dogs?pk=id'
+```
 
 ## Development
 
