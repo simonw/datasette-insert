@@ -4,7 +4,7 @@
 [![Changelog](https://img.shields.io/github/v/release/simonw/datasette-update-api?label=changelog)](https://github.com/simonw/datasette-update-api/releases)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/simonw/datasette-update-api/blob/master/LICENSE)
 
-Datasette plugin providing an API for updating data - **IN DEVELOPMENT, not yet usable**
+Datasette plugin providing an API for updating data
 
 ## Installation
 
