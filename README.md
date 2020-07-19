@@ -39,12 +39,22 @@ The first time data is posted to the URL a table of that name will be created if
 
 You can specify which column should be used as the primary key using the `?pk=` URL argument.
 
+You can create a new local empty database file by running one of the following commands:
+
+    sqlite3 data.db vacuum
+    # Or if you have sqlite-utils:
+    sqlite-utils data.db vacuum
+
+Then start Datasette locally like this:
+
+    datasette data.db
+
 Here's how to POST to a database and create a new table using the Python `requests` library:
 
 ```python
 import requests
 
-requests.post("http://localhost:8001/-/insert/unsafe/dogs?pk=id", json=[
+requests.post("http://localhost:8001/-/insert/data/dogs?pk=id", json=[
     {
         "id": 1,
         "name": "Cleopaws",
@@ -73,8 +83,12 @@ curl --request POST \
         "age": 4
       }
     ]' \
-    'http://localhost:8001/-/insert/unsafe/dogs?pk=id'
+    'http://localhost:8001/-/insert/data/dogs?pk=id'
 ```
+Or by piping in JSON like so:
+
+    cat dogs.json | curl --request POST -d @- \
+        'http://localhost:8001/-/insert/data/dogs?pk=id'
 
 ### Inserting a single row
 
@@ -87,7 +101,7 @@ curl --request POST \
       "name": "Cleopaws",
       "age": 5
     }' \
-    'http://localhost:8001/-/insert/unsafe/dogs?pk=id'
+    'http://localhost:8001/-/insert/data/dogs?pk=id'
 ```
 
 ### Automatically adding new columns
@@ -114,7 +128,7 @@ curl --request POST \
         "breed": "Husky"
       }
     ]' \
-    'http://localhost:8001/-/insert/unsafe/dogs?alter=1'
+    'http://localhost:8001/-/insert/data/dogs?alter=1'
 ```
 
 ## Development
