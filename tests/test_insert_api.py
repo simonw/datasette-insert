@@ -21,7 +21,7 @@ async def test_plugin_is_installed(ds):
         response = await client.get("http://localhost/-/plugins.json")
         assert 200 == response.status_code
         installed_plugins = {p["name"] for p in response.json()}
-        assert "datasette-update-api" in installed_plugins
+        assert "datasette-insert-api" in installed_plugins
 
 
 @pytest.mark.asyncio
@@ -29,7 +29,7 @@ async def test_insert_creates_table(ds):
     app = ds.app()
     async with httpx.AsyncClient(app=app) as client:
         response = await client.post(
-            "http://localhost/-/update/data/newtable?pk=id",
+            "http://localhost/-/insert/data/newtable?pk=id",
             json=[
                 {"id": 3, "name": "Cleopaws", "age": 5},
                 {"id": 11, "name": "Pancakes", "age": 4},
@@ -49,7 +49,7 @@ async def test_insert_creates_table(ds):
 
 
 @pytest.mark.asyncio
-async def test_update_alter(ds):
+async def test_insert_alter(ds):
     async with httpx.AsyncClient(app=ds.app()) as client:
 
         async def rows():
@@ -58,7 +58,7 @@ async def test_update_alter(ds):
             ).json()
 
         response = await client.post(
-            "http://localhost/-/update/data/dogs?pk=id",
+            "http://localhost/-/insert/data/dogs?pk=id",
             json=[{"id": 3, "name": "Cleopaws", "age": 5},],
         )
         assert 200 == response.status_code
@@ -67,13 +67,13 @@ async def test_update_alter(ds):
         ]
         # Should throw error without alter
         response2 = await client.post(
-            "http://localhost/-/update/data/dogs",
+            "http://localhost/-/insert/data/dogs",
             json=[{"id": 3, "name": "Cleopaws", "age": 5, "weight_lb": 51.1}],
         )
         assert 400 == response2.status_code
         # Insert with an alter
         response3 = await client.post(
-            "http://localhost/-/update/data/dogs?alter=1",
+            "http://localhost/-/insert/data/dogs?alter=1",
             json=[{"id": 3, "name": "Cleopaws", "age": 5, "weight_lb": 51.1}],
         )
         assert 200 == response3.status_code

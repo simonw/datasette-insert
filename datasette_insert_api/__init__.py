@@ -40,5 +40,5 @@ async def insert_update(request, datasette):
 @hookimpl
 def register_routes():
     return [
-        (r"^/-/update/(?P<database>[^/]+)/(?P<table>[^/]+)$", insert_update),
+        (r"^/-/insert/(?P<database>[^/]+)/(?P<table>[^/]+)$", insert_update),
     ]

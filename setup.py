@@ -13,22 +13,22 @@ def get_long_description():
 
 
 setup(
-    name="datasette-update-api",
-    description="Datasette plugin providing an API for updating data",
+    name="datasette-insert-api",
+    description="Datasette plugin providing an API for inserting and updating data",
     long_description=get_long_description(),
     long_description_content_type="text/markdown",
     author="Simon Willison",
-    url="https://github.com/simonw/datasette-update-api",
+    url="https://github.com/simonw/datasette-insert-api",
     project_urls={
-        "Issues": "https://github.com/simonw/datasette-update-api/issues",
-        "CI": "https://github.com/simonw/datasette-update-api/actions",
-        "Changelog": "https://github.com/simonw/datasette-update-api/releases",
+        "Issues": "https://github.com/simonw/datasette-insert-api/issues",
+        "CI": "https://github.com/simonw/datasette-insert-api/actions",
+        "Changelog": "https://github.com/simonw/datasette-insert-api/releases",
     },
     license="Apache License, Version 2.0",
     version=VERSION,
-    packages=["datasette_update_api"],
-    entry_points={"datasette": ["update_api = datasette_update_api"]},
+    packages=["datasette_insert_api"],
+    entry_points={"datasette": ["insert_api = datasette_insert_api"]},
     install_requires=["datasette", "sqlite-utils"],
     extras_require={"test": ["pytest", "pytest-asyncio", "httpx"]},
-    tests_require=["datasette-update-api[test]"],
+    tests_require=["datasette-insert-api[test]"],
 )
