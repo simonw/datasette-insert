@@ -76,6 +76,33 @@ curl --request POST \
     'http://localhost:8001/-/update/unsafe/dogs?pk=id'
 ```
 
+### Automatically adding new columns
+
+If you send data to an existing table with keys that are not reflected by the existing columns, you will get an HTTP 400 error with a JSON response like this:
+
+```json
+{
+    "status": 400,
+    "error": "Unknown keys: 'foo'",
+    "error_code": "unknown_keys"
+}
+```
+
+If you add `?alter=1` to the URL you are posting to any missing columns will be automatically added:
+
+```
+curl --request POST \
+  --data '[
+      {
+        "id": 3,
+        "name": "Boris",
+        "age": 1,
+        "breed": "Husky"
+      }
+    ]' \
+    'http://localhost:8001/-/update/unsafe/dogs?alter=1'
+```
+
 ## Development
 
 To set up this plugin locally, first checkout the code. Then create a new virtual environment:
