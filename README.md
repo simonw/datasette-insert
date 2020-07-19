@@ -76,6 +76,20 @@ curl --request POST \
     'http://localhost:8001/-/insert/unsafe/dogs?pk=id'
 ```
 
+### Inserting a single row
+
+If you are inserting a single row you can optionally send it as a dictionary rather than a list with a single item:
+
+```
+curl --request POST \
+  --data '{
+      "id": 1,
+      "name": "Cleopaws",
+      "age": 5
+    }' \
+    'http://localhost:8001/-/insert/unsafe/dogs?pk=id'
+```
+
 ### Automatically adding new columns
 
 If you send data to an existing table with keys that are not reflected by the existing columns, you will get an HTTP 400 error with a JSON response like this:

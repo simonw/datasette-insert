@@ -12,6 +12,8 @@ async def insert_update(request, datasette):
     db = datasette.get_database(database)
 
     post_json = json.loads(await post_body(request))
+    if isinstance(post_json, dict):
+        post_json = [post_json]
 
     def insert(conn):
         db = sqlite_utils.Database(conn)

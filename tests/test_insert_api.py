@@ -24,28 +24,58 @@ async def test_plugin_is_installed(ds):
         assert "datasette-insert-api" in installed_plugins
 
 
-@pytest.mark.asyncio
-async def test_insert_creates_table(ds):
-    app = ds.app()
-    async with httpx.AsyncClient(app=app) as client:
-        response = await client.post(
-            "http://localhost/-/insert/data/newtable?pk=id",
-            json=[
+@pytest.mark.parametrize(
+    "input,pk,expected",
+    # expected=None means reuse the inpt as the expected
+    [
+        (
+            [
                 {"id": 3, "name": "Cleopaws", "age": 5},
                 {"id": 11, "name": "Pancakes", "age": 4},
             ],
+            "id",
+            None,
+        ),
+        # rowid example:
+        (
+            [{"name": "Cleopaws", "age": 5}, {"name": "Pancakes", "age": 4},],
+            None,
+            [
+                {"rowid": 1, "name": "Cleopaws", "age": 5},
+                {"rowid": 2, "name": "Pancakes", "age": 4},
+            ],
+        ),
+        # Single row
+        (
+            {"id": 1, "name": "Cleopaws", "age": 5},
+            "id",
+            [{"id": 1, "name": "Cleopaws", "age": 5}],
+        ),
+        (
+            {"name": "Cleopaws", "age": 5},
+            None,
+            [{"rowid": 1, "name": "Cleopaws", "age": 5}],
+        ),
+    ],
+)
+@pytest.mark.asyncio
+async def test_insert_creates_table(ds, input, pk, expected):
+    app = ds.app()
+    async with httpx.AsyncClient(app=app) as client:
+        response = await client.post(
+            "http://localhost/-/insert/data/newtable{}".format(
+                "?pk={}".format(pk) if pk else ""
+            ),
+            json=input,
         )
         assert 200 == response.status_code
-        assert {"table_count": 2} == response.json()
+        assert {"table_count"} == set(response.json().keys())
         # Read that table data
         response2 = await client.get(
             "http://localhost/data/newtable.json?_shape=array",
         )
         assert 200 == response2.status_code
-        assert [
-            {"id": 3, "name": "Cleopaws", "age": 5},
-            {"id": 11, "name": "Pancakes", "age": 4},
-        ] == response2.json()
+        assert (expected or input) == response2.json()
 
 
 @pytest.mark.asyncio
