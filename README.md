@@ -1,7 +1,7 @@
 # datasette-insert-api
 
 [![PyPI](https://img.shields.io/pypi/v/datasette-insert-api.svg)](https://pypi.org/project/datasette-insert-api/)
-[![Changelog](https://img.shields.io/github/v/release/simonw/datasette-insert-api?label=changelog)](https://github.com/simonw/datasette-insert-api/releases)
+[![Changelog](https://img.shields.io/github/v/release/simonw/datasette-insert-api?include_prereleases&label=changelog)](https://github.com/simonw/datasette-insert-api/releases)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/simonw/datasette-insert-api/blob/master/LICENSE)
 
 Datasette plugin providing an API for inserting and updating data
