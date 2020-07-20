@@ -29,6 +29,8 @@ setup(
     packages=["datasette_insert_api"],
     entry_points={"datasette": ["insert_api = datasette_insert_api"]},
     install_requires=["datasette", "sqlite-utils"],
-    extras_require={"test": ["pytest", "pytest-asyncio", "httpx"]},
+    extras_require={
+        "test": ["pytest", "pytest-asyncio", "httpx", "datasette-auth-tokens"]
+    },
     tests_require=["datasette-insert-api[test]"],
 )

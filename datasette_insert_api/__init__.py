@@ -1,6 +1,6 @@
 from datasette import hookimpl
 from datasette.utils.asgi import Response
-from datasette.utils import sqlite3
+from datasette.utils import actor_matches_allow, sqlite3
 import json
 import sqlite_utils
 from .utils import post_body
@@ -9,7 +9,15 @@ from .utils import post_body
 async def insert_update(request, datasette):
     database = request.url_vars["database"]
     table = request.url_vars["table"]
+    plugin_config = datasette.plugin_config("datasette-insert-api") or {}
     db = datasette.get_database(database)
+
+    # Check permissions
+    if "allow" in plugin_config:
+        if not actor_matches_allow(request.actor, plugin_config["allow"]):
+            return Response.json(
+                {"error": "Permission denied", "status": 403}, status=403
+            )
 
     post_json = json.loads(await post_body(request))
     if isinstance(post_json, dict):
@@ -34,7 +42,7 @@ async def insert_update(request, datasette):
                 status=400,
             )
         else:
-            return Respones.json({"error": str(ex), "status": 500}, status=500)
+            return Response.json({"error": str(ex), "status": 500}, status=500)
 
     return Response.json({"table_count": table_count})
 

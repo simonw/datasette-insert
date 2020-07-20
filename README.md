@@ -130,6 +130,74 @@ curl --request POST \
     ]' \
     'http://localhost:8001/-/insert/data/dogs?alter=1'
 ```
+## Permissions and authentication
+
+This plugin does not require authentication by default.
+
+This should be safe when running `datasette` on a local machine because Datasette defaults to only allowing localhost connections (`127.0.0.1`) and does not allow CORS requests.
+
+If you plan to run this on a server somewhere, or you plan to enable JavaScript CORS access using the `--cors` Datasette option, you will need to take extra steps to secure the API.
+
+You can read about [Datasette's approach to authentication](https://datasette.readthedocs.io/en/stable/authentication.html) in the Datasette manual.
+
+I recommend using this plugin in conjunction with [datasette-auth-tokens](https://github.com/simonw/datasette-auth-tokens), which provides a mechanism for making authenticated calls using API tokens.
+
+You can then use ["allow" blocks](https://datasette.readthedocs.io/en/stable/authentication.html#defining-permissions-with-allow-blocks) in the `datasette-insert-api` plugin configuration to specify which authenticated tokens are allowed to make use of the API.
+
+Here's an example `metadata.json` file which restricts access to the `/-/insert` API to an API token defined in an `INSERT_TOKEN` environment variable:
+
+```json
+{
+    "plugins": {
+        "datasette-insert-api": {
+            "allow": {
+                "bot": "insert-bot"
+            }
+        },
+        "datasette-auth-tokens": {
+            "tokens": [
+                {
+                    "token": {
+                        "$env": "INSERT_TOKEN"
+                    },
+                    "actor": {
+                        "bot": "insert-bot"
+                    }
+                }
+            ]
+        }
+    }
+}
+```
+With this configuration in place you can start Datasette like this:
+
+    INSERT_TOKEN=abc123 datasette data.db -m metadata.json
+
+You can now send data to the API using `curl` like this:
+
+```
+curl --request POST \
+  -H "Authorization: Bearer abc123"
+  --data '[
+      {
+        "id": 3,
+        "name": "Boris",
+        "age": 1,
+        "breed": "Husky"
+      }
+    ]' \
+    'http://localhost:8001/-/insert/data/dogs'
+```
+
+Or using the Python `requests` library like so:
+
+```python
+requests.post(
+    "http://localhost:8001/-/insert/data/dogs",
+    json={"id": 1, "name": "Cleopaws", "age": 5},
+    headers={"Authorization": "bearer abc123"},
+)
+```
 
 ## Development
 
