@@ -177,7 +177,7 @@ You can now send data to the API using `curl` like this:
 
 ```
 curl --request POST \
-  -H "Authorization: Bearer abc123"
+  -H "Authorization: Bearer abc123" \
   --data '[
       {
         "id": 3,
