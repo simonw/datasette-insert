@@ -199,6 +199,23 @@ requests.post(
 )
 ```
 
+### Finely grained permissions
+
+Using an `"allow"` block as described above grants full permission to the features enabled by the API.
+
+The API implements several new Datasett permissions, which other plugins can use to make more finely grained decisions.
+
+The full set of permissions are as follows:
+
+- `insert-api:all` - all permissions - this is used by the `"allow"` block described above. Argument: `database_name`
+- `insert-api:insert-update` - the ability to insert data into an existing table, or to update data by its primary key. Arguments: `(database_name, table_name)`
+- `insert-api:create-table` - the ability to create a new table. Argument: `database_name`
+- `insert-api:alter-table` - the ability to add columns to an existing table (using `?alter=1`). Arguments: `(database_name, table_name)`
+
+You can use plugins like [datasette-permissions-sql](https://github.com/simonw/datasette-permissions-sql) to hook into these more detailed permissions for finely grained control over what actions each authenticated actor can take.
+
+Plugins that implement the [permission_allowed()](https://datasette.readthedocs.io/en/stable/plugin_hooks.html#plugin-hook-permission-allowed) plugin hook can take full control over these permission decisions.
+
 ## Development
 
 To set up this plugin locally, first checkout the code. Then create a new virtual environment:
