@@ -1,18 +1,18 @@
-# datasette-insert-api
+# datasette-insert
 
-[![PyPI](https://img.shields.io/pypi/v/datasette-insert-api.svg)](https://pypi.org/project/datasette-insert-api/)
-[![Changelog](https://img.shields.io/github/v/release/simonw/datasette-insert-api?include_prereleases&label=changelog)](https://github.com/simonw/datasette-insert-api/releases)
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/simonw/datasette-insert-api/blob/master/LICENSE)
+[![PyPI](https://img.shields.io/pypi/v/datasette-insert.svg)](https://pypi.org/project/datasette-insert/)
+[![Changelog](https://img.shields.io/github/v/release/simonw/datasette-insert?include_prereleases&label=changelog)](https://github.com/simonw/datasette-insert/releases)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/simonw/datasette-insert/blob/master/LICENSE)
 
-Datasette plugin providing an API for inserting and updating data
+Datasette plugin for inserting and updating data
 
 ## Installation
 
 Install this plugin in the same environment as Datasette.
 
-    $ pip install datasette-insert-api
+    $ pip install datasette-insert
 
-## Usage
+## API usage
 
 Having installed the plugin, data can be inserted or updated and tables can be created by POSTing JSON data to the following URL:
 
@@ -142,14 +142,14 @@ You can read about [Datasette's approach to authentication](https://datasette.re
 
 I recommend using this plugin in conjunction with [datasette-auth-tokens](https://github.com/simonw/datasette-auth-tokens), which provides a mechanism for making authenticated calls using API tokens.
 
-You can then use ["allow" blocks](https://datasette.readthedocs.io/en/stable/authentication.html#defining-permissions-with-allow-blocks) in the `datasette-insert-api` plugin configuration to specify which authenticated tokens are allowed to make use of the API.
+You can then use ["allow" blocks](https://datasette.readthedocs.io/en/stable/authentication.html#defining-permissions-with-allow-blocks) in the `datasette-insert` plugin configuration to specify which authenticated tokens are allowed to make use of the API.
 
 Here's an example `metadata.json` file which restricts access to the `/-/insert` API to an API token defined in an `INSERT_TOKEN` environment variable:
 
 ```json
 {
     "plugins": {
-        "datasette-insert-api": {
+        "datasette-insert": {
             "allow": {
                 "bot": "insert-bot"
             }
@@ -207,10 +207,10 @@ The API implements several new Datasett permissions, which other plugins can use
 
 The full set of permissions are as follows:
 
-- `insert-api:all` - all permissions - this is used by the `"allow"` block described above. Argument: `database_name`
-- `insert-api:insert-update` - the ability to insert data into an existing table, or to update data by its primary key. Arguments: `(database_name, table_name)`
-- `insert-api:create-table` - the ability to create a new table. Argument: `database_name`
-- `insert-api:alter-table` - the ability to add columns to an existing table (using `?alter=1`). Arguments: `(database_name, table_name)`
+- `insert:all` - all permissions - this is used by the `"allow"` block described above. Argument: `database_name`
+- `insert:insert-update` - the ability to insert data into an existing table, or to update data by its primary key. Arguments: `(database_name, table_name)`
+- `insert:create-table` - the ability to create a new table. Argument: `database_name`
+- `insert:alter-table` - the ability to add columns to an existing table (using `?alter=1`). Arguments: `(database_name, table_name)`
 
 You can use plugins like [datasette-permissions-sql](https://github.com/simonw/datasette-permissions-sql) to hook into these more detailed permissions for finely grained control over what actions each authenticated actor can take.
 
@@ -220,7 +220,7 @@ Plugins that implement the [permission_allowed()](https://datasette.readthedocs.
 
 To set up this plugin locally, first checkout the code. Then create a new virtual environment:
 
-    cd datasette-insert-api
+    cd datasette-insert
     python3 -mvenv venv
     source venv/bin/activate
 

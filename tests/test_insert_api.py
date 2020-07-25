@@ -26,7 +26,7 @@ def ds_root_only(db_path):
         [db_path],
         metadata={
             "plugins": {
-                "datasette-insert-api": {"allow": {"bot": "test"}},
+                "datasette-insert": {"allow": {"bot": "test"}},
                 "datasette-auth-tokens": {
                     "tokens": [{"token": "test-bot", "actor": {"bot": "test"}}]
                 },
@@ -42,7 +42,7 @@ async def test_plugin_is_installed(ds):
         response = await client.get("http://localhost/-/plugins.json")
         assert 200 == response.status_code
         installed_plugins = {p["name"] for p in response.json()}
-        assert "datasette-insert-api" in installed_plugins
+        assert "datasette-insert" in installed_plugins
         # Check we have our testing dependency too:
         assert "datasette-auth-tokens" in installed_plugins
 
@@ -209,8 +209,8 @@ async def test_permission_finely_grained(
 
         @hookimpl
         def permission_allowed(self, datasette, actor, action):
-            if action.startswith("insert-api:"):
-                return permissions.get(action.replace("insert-api:", ""))
+            if action.startswith("insert:"):
+                return permissions.get(action.replace("insert:", ""))
 
     pm.register(TestPlugin(), name="undo")
     try:

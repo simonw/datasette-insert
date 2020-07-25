@@ -20,7 +20,7 @@ async def insert_update(request, datasette):
     allow_create_table = False
     allow_alter_table = False
     allow_all = await datasette.permission_allowed(
-        request.actor, "insert-api:all", database, default=True
+        request.actor, "insert:all", database, default=True
     )
     if allow_all:
         allow_insert_update = True
@@ -29,13 +29,13 @@ async def insert_update(request, datasette):
     else:
         # Check for finely grained permissions
         allow_insert_update = await datasette.permission_allowed(
-            request.actor, "insert-api:insert-update", (database, table), default=False
+            request.actor, "insert:insert-update", (database, table), default=False
         )
         allow_create_table = await datasette.permission_allowed(
-            request.actor, "insert-api:create-table", database, default=False
+            request.actor, "insert:create-table", database, default=False
         )
         allow_alter_table = await datasette.permission_allowed(
-            request.actor, "insert-api:alter-table", (database, table), default=False
+            request.actor, "insert:alter-table", (database, table), default=False
         )
 
     if not allow_insert_update:
@@ -82,9 +82,9 @@ async def insert_update(request, datasette):
 
 @hookimpl
 def permission_allowed(datasette, actor, action):
-    if action != "insert-api:all":
+    if action != "insert:all":
         return None
-    plugin_config = datasette.plugin_config("datasette-insert-api") or {}
+    plugin_config = datasette.plugin_config("datasette-insert") or {}
     if "allow" in plugin_config:
         return actor_matches_allow(actor, plugin_config["allow"])
 
