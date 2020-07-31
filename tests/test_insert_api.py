@@ -16,6 +16,11 @@ def db_path(tmp_path_factory):
 
 
 @pytest.fixture
+def unsafe(monkeypatch):
+    monkeypatch.setenv("DATASETTE_INSERT_UNSAFE", "1")
+
+
+@pytest.fixture
 def ds(db_path):
     return Datasette([db_path])
 
@@ -45,6 +50,16 @@ async def test_plugin_is_installed(ds):
         assert "datasette-insert" in installed_plugins
         # Check we have our testing dependency too:
         assert "datasette-auth-tokens" in installed_plugins
+
+
+@pytest.mark.asyncio
+async def test_permission_denied_without_environment_variable(ds):
+    app = ds.app()
+    async with httpx.AsyncClient(app=app) as client:
+        response = await client.post(
+            "http://localhost/-/insert/data/newtable", json=[{"foo": "bar"}],
+        )
+        assert 403 == response.status_code
 
 
 @pytest.mark.parametrize(
@@ -82,7 +97,7 @@ async def test_plugin_is_installed(ds):
     ],
 )
 @pytest.mark.asyncio
-async def test_insert_creates_table(ds, input, pk, expected):
+async def test_insert_creates_table(ds, unsafe, input, pk, expected):
     app = ds.app()
     async with httpx.AsyncClient(app=app) as client:
         response = await client.post(
@@ -102,7 +117,7 @@ async def test_insert_creates_table(ds, input, pk, expected):
 
 
 @pytest.mark.asyncio
-async def test_insert_alter(ds):
+async def test_insert_alter(ds, unsafe):
     async with httpx.AsyncClient(app=ds.app()) as client:
         response = await client.post(
             "http://localhost/-/insert/data/dogs?pk=id",

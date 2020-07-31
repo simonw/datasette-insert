@@ -1,6 +1,7 @@
 from datasette import hookimpl
 from datasette.utils.asgi import Response
 from datasette.utils import actor_matches_allow, sqlite3
+import os
 import json
 import sqlite_utils
 from .utils import post_body
@@ -20,7 +21,7 @@ async def insert_update(request, datasette):
     allow_create_table = False
     allow_alter_table = False
     allow_all = await datasette.permission_allowed(
-        request.actor, "insert:all", database, default=True
+        request.actor, "insert:all", database, default=False
     )
     if allow_all:
         allow_insert_update = True
@@ -84,6 +85,9 @@ async def insert_update(request, datasette):
 def permission_allowed(datasette, actor, action):
     if action != "insert:all":
         return None
+    # action is insert:all
+    if os.environ.get("DATASETTE_INSERT_UNSAFE"):
+        return True
     plugin_config = datasette.plugin_config("datasette-insert") or {}
     if "allow" in plugin_config:
         return actor_matches_allow(actor, plugin_config["allow"])
