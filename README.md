@@ -12,6 +12,10 @@ Install this plugin in the same environment as Datasette.
 
     $ pip install datasette-insert
 
+This plugin should always be deployed with additional configuration to prevent unauthenticated access.
+
+If you are trying it out on your own local machine, you can `pip install` the [datasette-insert-unsafe](https://github.com/simonw/datasette-insert-unsafe) plugin to allow access without needing to set up authentication or permissions separately.
+
 ## API usage
 
 Having installed the plugin, data can be inserted or updated and tables can be created by POSTing JSON data to the following URL:
@@ -132,13 +136,11 @@ curl --request POST \
 ```
 ## Permissions and authentication
 
-This plugin does not require authentication by default.
-
-This should be safe when running `datasette` on a local machine because Datasette defaults to only allowing localhost connections (`127.0.0.1`) and does not allow CORS requests.
-
-If you plan to run this on a server somewhere, or you plan to enable JavaScript CORS access using the `--cors` Datasette option, you will need to take extra steps to secure the API.
+This plugin defaults to denying all access, to help ensure people don't accidentally deploy it on the open internet in an unsafe configuration.
 
 You can read about [Datasette's approach to authentication](https://datasette.readthedocs.io/en/stable/authentication.html) in the Datasette manual.
+
+You can install the `datasette-insert-unsafe` plugin to run in unsafe mode, where all access is allowed by default.
 
 I recommend using this plugin in conjunction with [datasette-auth-tokens](https://github.com/simonw/datasette-auth-tokens), which provides a mechanism for making authenticated calls using API tokens.
 

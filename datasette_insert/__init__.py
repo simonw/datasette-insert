@@ -20,7 +20,7 @@ async def insert_update(request, datasette):
     allow_create_table = False
     allow_alter_table = False
     allow_all = await datasette.permission_allowed(
-        request.actor, "insert:all", database, default=True
+        request.actor, "insert:all", database, default=False
     )
     if allow_all:
         allow_insert_update = True
