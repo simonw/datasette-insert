@@ -3,7 +3,6 @@ from datasette.utils.asgi import Response
 from datasette.utils import actor_matches_allow, sqlite3
 import json
 import sqlite_utils
-from .utils import post_body
 
 
 class MissingTable(Exception):
@@ -41,7 +40,7 @@ async def insert_update(request, datasette):
     if not allow_insert_update:
         return Response.json({"error": "Permission denied", "status": 403}, status=403)
 
-    post_json = json.loads(await post_body(request))
+    post_json = json.loads(await request.post_body())
     if isinstance(post_json, dict):
         post_json = [post_json]
 

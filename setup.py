@@ -28,7 +28,7 @@ setup(
     version=VERSION,
     packages=["datasette_insert"],
     entry_points={"datasette": ["insert = datasette_insert"]},
-    install_requires=["datasette", "sqlite-utils"],
+    install_requires=["datasette>0.46", "sqlite-utils"],
     extras_require={
         "test": ["pytest", "pytest-asyncio", "httpx", "datasette-auth-tokens"]
     },
