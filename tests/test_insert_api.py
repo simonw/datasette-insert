@@ -3,7 +3,6 @@ from datasette.app import Datasette
 from datasette.plugins import pm
 import sqlite_utils
 import pytest
-import httpx
 
 
 @pytest.fixture
@@ -52,25 +51,21 @@ def ds_root_only(db_path):
 
 @pytest.mark.asyncio
 async def test_plugin_is_installed(ds):
-    app = ds.app()
-    async with httpx.AsyncClient(app=app) as client:
-        response = await client.get("http://localhost/-/plugins.json")
-        assert 200 == response.status_code
-        installed_plugins = {p["name"] for p in response.json()}
-        assert "datasette-insert" in installed_plugins
-        # Check we have our testing dependency too:
-        assert "datasette-auth-tokens" in installed_plugins
+    response = await ds.client.get("/-/plugins.json")
+    assert response.status_code == 200
+    installed_plugins = {p["name"] for p in response.json()}
+    assert "datasette-insert" in installed_plugins
+    # Check we have our testing dependency too:
+    assert "datasette-auth-tokens" in installed_plugins
 
 
 @pytest.mark.asyncio
 async def test_permission_denied_by_default(ds):
-    app = ds.app()
-    async with httpx.AsyncClient(app=app) as client:
-        response = await client.post(
-            "http://localhost/-/insert/data/newtable",
-            json=[{"foo": "bar"}],
-        )
-        assert 403 == response.status_code
+    response = await ds.client.post(
+        "/-/insert/data/newtable",
+        json=[{"foo": "bar"}],
+    )
+    assert response.status_code == 403
 
 
 @pytest.mark.parametrize(
@@ -110,49 +105,47 @@ async def test_permission_denied_by_default(ds):
 @pytest.mark.asyncio
 async def test_insert_creates_table(ds, unsafe, input, pk, expected):
     app = ds.app()
-    async with httpx.AsyncClient(app=app) as client:
-        response = await client.post(
-            "http://localhost/-/insert/data/newtable{}".format(
-                "?pk={}".format(pk) if pk else ""
-            ),
-            json=input,
-        )
-        assert 200 == response.status_code
-        assert {"table_count"} == set(response.json().keys())
-        # Read that table data
-        response2 = await client.get(
-            "http://localhost/data/newtable.json?_shape=array",
-        )
-        assert 200 == response2.status_code
-        assert (expected or input) == response2.json()
+    response = await ds.client.post(
+        "/-/insert/data/newtable{}".format(
+            "?pk={}".format(pk) if pk else ""
+        ),
+        json=input,
+    )
+    assert response.status_code == 200
+    assert {"table_count"} == set(response.json().keys())
+    # Read that table data
+    response2 = await ds.client.get(
+        "/data/newtable.json?_shape=array",
+    )
+    assert 200 == response2.status_code
+    assert (expected or input) == response2.json()
 
 
 @pytest.mark.asyncio
 async def test_insert_alter(ds, unsafe):
-    async with httpx.AsyncClient(app=ds.app()) as client:
-        response = await client.post(
-            "http://localhost/-/insert/data/dogs?pk=id",
-            json=[{"id": 3, "name": "Cleopaws", "age": 5}],
-        )
-        assert 200 == response.status_code
-        assert (await rows(client)) == [
-            {"id": 3, "name": "Cleopaws", "age": 5},
-        ]
-        # Should throw error without alter
-        response2 = await client.post(
-            "http://localhost/-/insert/data/dogs",
-            json=[{"id": 3, "name": "Cleopaws", "age": 5, "weight_lb": 51.1}],
-        )
-        assert 400 == response2.status_code
-        # Insert with an alter
-        response3 = await client.post(
-            "http://localhost/-/insert/data/dogs?alter=1",
-            json=[{"id": 3, "name": "Cleopaws", "age": 5, "weight_lb": 51.1}],
-        )
-        assert 200 == response3.status_code
-        assert (await rows(client)) == [
-            {"id": 3, "name": "Cleopaws", "age": 5, "weight_lb": 51.1},
-        ]
+    response = await ds.client.post(
+        "/-/insert/data/dogs?pk=id",
+        json=[{"id": 3, "name": "Cleopaws", "age": 5}],
+    )
+    assert response.status_code == 200
+    assert (await rows(ds.client)) == [
+        {"id": 3, "name": "Cleopaws", "age": 5},
+    ]
+    # Should throw error without alter
+    response2 = await ds.client.post(
+        "/-/insert/data/dogs",
+        json=[{"id": 3, "name": "Cleopaws", "age": 5, "weight_lb": 51.1}],
+    )
+    assert 400 == response2.status_code
+    # Insert with an alter
+    response3 = await ds.client.post(
+        "/-/insert/data/dogs?alter=1",
+        json=[{"id": 3, "name": "Cleopaws", "age": 5, "weight_lb": 51.1}],
+    )
+    assert 200 == response3.status_code
+    assert (await rows(ds.client)) == [
+        {"id": 3, "name": "Cleopaws", "age": 5, "weight_lb": 51.1},
+    ]
 
 
 @pytest.mark.asyncio
@@ -176,26 +169,24 @@ async def test_missing_column_error(ds, unsafe):
 
 @pytest.mark.asyncio
 async def test_permission_denied_by_allow_block(ds_root_only):
-    async with httpx.AsyncClient(app=ds_root_only.app()) as client:
-        response = await client.post(
-            "http://localhost/-/insert/data/dogs?pk=id",
-            json=[{"id": 3, "name": "Cleopaws", "age": 5}],
-        )
-        assert 403 == response.status_code
+    response = await ds_root_only.client.post(
+        "/-/insert/data/dogs?pk=id",
+        json=[{"id": 3, "name": "Cleopaws", "age": 5}],
+    )
+    assert response.status_code == 403
 
 
 @pytest.mark.asyncio
 async def test_permission_allowed_by_allow_block(ds_root_only):
-    async with httpx.AsyncClient(app=ds_root_only.app()) as client:
-        response = await client.post(
-            "http://localhost/-/insert/data/dogs?pk=id",
-            json=[{"id": 3, "name": "Cleopaws", "age": 5}],
-            headers={"Authorization": "Bearer test-bot"},
-        )
-        assert 200 == response.status_code
-        assert (await rows(client)) == [
-            {"id": 3, "name": "Cleopaws", "age": 5},
-        ]
+    response = await ds_root_only.client.post(
+        "/-/insert/data/dogs?pk=id",
+        json=[{"id": 3, "name": "Cleopaws", "age": 5}],
+        headers={"Authorization": "Bearer test-bot"},
+    )
+    assert response.status_code == 200
+    assert (await rows(ds_root_only.client)) == [
+        {"id": 3, "name": "Cleopaws", "age": 5},
+    ]
 
 
 @pytest.mark.parametrize(
@@ -283,35 +274,34 @@ async def test_permission_finely_grained(
 
     pm.register(TestPlugin(), name="undo")
     try:
-        async with httpx.AsyncClient(app=ds_root_only.app()) as client:
-            # First create the table (if we aren't testing create-table) using
-            # the root authenticated API token
-            if try_action != "create-table":
-                await client.post(
-                    "http://localhost/-/insert/data/dogs?pk=id",
-                    json=[{"id": 1, "name": "Toodles", "age": 3}],
-                    headers={"Authorization": "Bearer test-bot"},
-                )
+        # First create the table (if we aren't testing create-table) using
+        # the root authenticated API token
+        if try_action != "create-table":
+            await ds_root_only.client.post(
+                "/-/insert/data/dogs?pk=id",
+                json=[{"id": 1, "name": "Toodles", "age": 3}],
+                headers={"Authorization": "Bearer test-bot"},
+            )
 
-            # Now we can test the TestPlugin-provided permissions
-            if try_action in ("insert-update", "create-table"):
-                response = await client.post(
-                    "http://localhost/-/insert/data/dogs?pk=id",
-                    json=[{"id": 3, "name": "Cleopaws", "age": 5}],
-                )
-            elif try_action == "alter-table":
-                response = await client.post(
-                    "http://localhost/-/insert/data/dogs?pk=id&alter=1",
-                    json=[{"id": 3, "name": "Cleopaws", "age": 5, "weight": 51.5}],
-                )
-            else:
-                assert False, "{} is not a valid test action".format(try_action)
-            assert response.status_code == expected_status
-            if expected_status != 200:
-                assert response.json()["error"] == expected_msg
+        # Now we can test the TestPlugin-provided permissions
+        if try_action in ("insert-update", "create-table"):
+            response = await ds_root_only.client.post(
+                "/-/insert/data/dogs?pk=id",
+                json=[{"id": 3, "name": "Cleopaws", "age": 5}],
+            )
+        elif try_action == "alter-table":
+            response = await ds_root_only.client.post(
+                "/-/insert/data/dogs?pk=id&alter=1",
+                json=[{"id": 3, "name": "Cleopaws", "age": 5, "weight": 51.5}],
+            )
+        else:
+            assert False, "{} is not a valid test action".format(try_action)
+        assert response.status_code == expected_status
+        if expected_status != 200:
+            assert response.json()["error"] == expected_msg
     finally:
         pm.unregister(name="undo")
 
 
 async def rows(client):
-    return (await client.get("http://localhost/data/dogs.json?_shape=array")).json()
+    return (await client.get("/data/dogs.json?_shape=array")).json()
