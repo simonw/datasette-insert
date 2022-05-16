@@ -18,7 +18,7 @@ setup(
     long_description=get_long_description(),
     long_description_content_type="text/markdown",
     author="Simon Willison",
-    url="https://github.com/simonw/datasette-insert",
+    url="https://datasette.io/plugins/datasette-insert",
     project_urls={
         "Issues": "https://github.com/simonw/datasette-insert/issues",
         "CI": "https://github.com/simonw/datasette-insert/actions",
@@ -32,5 +32,5 @@ setup(
     extras_require={
         "test": ["pytest", "pytest-asyncio", "httpx", "datasette-auth-tokens"]
     },
-    tests_require=["datasette-insert[test]"],
+    python_requires=">=3.7",
 )
