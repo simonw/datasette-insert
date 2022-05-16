@@ -156,6 +156,25 @@ async def test_insert_alter(ds, unsafe):
 
 
 @pytest.mark.asyncio
+async def test_missing_column_error(ds, unsafe):
+    response = await ds.client.post(
+        "/-/insert/data/dogs?pk=id",
+        json=[{"id": 3, "name": "Cleopaws", "age": 5}],
+    )
+    assert response.status_code == 200
+    response2 = await ds.client.post(
+        "/-/insert/data/dogs?pk=id",
+        json=[{"id": 3, "name": "Cleopaws", "age": 5, "size": "medium"}],
+    )
+    assert response2.status_code == 400
+    assert response2.json() == {
+        "status": 400,
+        "error": "table dogs has no column named size",
+        "error_code": "unknown_keys",
+    }
+
+
+@pytest.mark.asyncio
 async def test_permission_denied_by_allow_block(ds_root_only):
     async with httpx.AsyncClient(app=ds_root_only.app()) as client:
         response = await client.post(
