@@ -12,7 +12,7 @@ Install this plugin in the same environment as Datasette.
 
     $ pip install datasette-insert
 
-This plugin should always be deployed with additional configuration to prevent unauthenticated access.
+This plugin should always be deployed with additional configuration to prevent unauthenticated access, see notes below.
 
 If you are trying it out on your own local machine, you can `pip install` the [datasette-insert-unsafe](https://github.com/simonw/datasette-insert-unsafe) plugin to allow access without needing to set up authentication or permissions separately.
 
@@ -43,15 +43,11 @@ The first time data is posted to the URL a table of that name will be created if
 
 You can specify which column should be used as the primary key using the `?pk=` URL argument.
 
-You can create a new local empty database file by running one of the following commands:
+Start Datasette like this:
 
-    sqlite3 data.db vacuum
-    # Or if you have sqlite-utils:
-    sqlite-utils data.db vacuum
+    datasette data.db --create
 
-Then start Datasette locally like this:
-
-    datasette data.db
+The `--create` option will create a new empty `data.db` database file if one does not already exist.
 
 Here's how to POST to a database and create a new table using the Python `requests` library:
 
