@@ -106,9 +106,7 @@ async def test_permission_denied_by_default(ds):
 async def test_insert_creates_table(ds, unsafe, input, pk, expected):
     app = ds.app()
     response = await ds.client.post(
-        "/-/insert/data/newtable{}".format(
-            "?pk={}".format(pk) if pk else ""
-        ),
+        "/-/insert/data/newtable{}".format("?pk={}".format(pk) if pk else ""),
         json=input,
     )
     assert response.status_code == 200
@@ -149,6 +147,23 @@ async def test_insert_alter(ds, unsafe):
 
 
 @pytest.mark.asyncio
+async def test_upsert(ds, unsafe):
+    response = await ds.client.post(
+        "/-/insert/data/dogs?pk=id",
+        json=[{"id": 3, "name": "Cleopaws", "age": 5}],
+    )
+    assert response.status_code == 200
+    response2 = await ds.client.post(
+        "/-/upsert/data/dogs?pk=id",
+        json=[{"id": 3, "age": 7}],
+    )
+    assert response2.status_code == 200
+    assert (await rows(ds.client)) == [
+        {"id": 3, "name": "Cleopaws", "age": 7},
+    ]
+
+
+@pytest.mark.asyncio
 async def test_missing_column_error(ds, unsafe):
     response = await ds.client.post(
         "/-/insert/data/dogs?pk=id",
@@ -164,6 +179,20 @@ async def test_missing_column_error(ds, unsafe):
         "status": 400,
         "error": "table dogs has no column named size",
         "error_code": "unknown_keys",
+    }
+
+
+@pytest.mark.asyncio
+async def test_upsert_reuires_pk_error(ds, unsafe):
+    response = await ds.client.post(
+        "/-/upsert/data/dogs",
+        json=[{"id": 3, "name": "Cleopaws", "age": 5}],
+    )
+    assert response.status_code == 400
+    assert response.json() == {
+        "status": 400,
+        "error": "Upsert requires ?pk=",
+        "error_code": "upsert_requires_pk",
     }
 
 
@@ -255,8 +284,8 @@ async def test_permission_allowed_by_allow_block(ds_root_only):
                 "alter-table": False,
             },
             "alter-table",
-            400,
-            "table dogs has no column named weight",
+            403,
+            "Alter permission denied",
         ),
     ],
 )

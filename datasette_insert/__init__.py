@@ -9,10 +9,23 @@ class MissingTable(Exception):
     pass
 
 
-async def insert_update(request, datasette):
+async def insert_or_upsert(request, datasette):
     database = request.url_vars["database"]
     table = request.url_vars["table"]
+    upsert = request.url_vars["verb"] == "upsert"
     db = datasette.get_database(database)
+    pk = request.args.get("pk")
+    alter = request.args.get("alter")
+
+    if upsert and not pk:
+        return Response.json(
+            {
+                "status": 400,
+                "error": "Upsert requires ?pk=",
+                "error_code": "upsert_requires_pk",
+            },
+            status=400,
+        )
 
     # Check permissions
     allow_insert_update = False
@@ -40,24 +53,27 @@ async def insert_update(request, datasette):
     if not allow_insert_update:
         return Response.json({"error": "Permission denied", "status": 403}, status=403)
 
+    if alter and not allow_alter_table:
+        return Response.json(
+            {"error": "Alter permission denied", "status": 403}, status=403
+        )
+
     post_json = json.loads(await request.post_body())
     if isinstance(post_json, dict):
         post_json = [post_json]
 
-    def insert(conn):
+    def write_in_thread(conn):
         db = sqlite_utils.Database(conn)
         if not allow_create_table and not db[table].exists():
             raise MissingTable()
-        db[table].insert_all(
-            post_json,
-            replace=True,
-            pk=request.args.get("pk"),
-            alter=(request.args.get("alter") and allow_alter_table),
-        )
+        if upsert:
+            db[table].upsert_all(post_json, pk=pk, alter=alter)
+        else:
+            db[table].insert_all(post_json, replace=True, pk=pk, alter=alter)
         return db[table].count
 
     try:
-        table_count = await db.execute_write_fn(insert, block=True)
+        table_count = await db.execute_write_fn(write_in_thread, block=True)
     except MissingTable:
         return Response.json(
             {
@@ -91,5 +107,8 @@ def permission_allowed(datasette, actor, action):
 @hookimpl
 def register_routes():
     return [
-        (r"^/-/insert/(?P<database>[^/]+)/(?P<table>[^/]+)$", insert_update),
+        (
+            r"^/-/(?P<verb>(insert|upsert))/(?P<database>[^/]+)/(?P<table>[^/]+)$",
+            insert_or_upsert,
+        ),
     ]

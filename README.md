@@ -16,9 +16,15 @@ This plugin should always be deployed with additional configuration to prevent u
 
 If you are trying it out on your own local machine, you can `pip install` the [datasette-insert-unsafe](https://github.com/simonw/datasette-insert-unsafe) plugin to allow access without needing to set up authentication or permissions separately.
 
-## API usage
+## Inserting data and creating tables
 
-Having installed the plugin, data can be inserted or updated and tables can be created by POSTing JSON data to the following URL:
+Start datasette and make sure it has a writable SQLite database attached to it. If you have not yet created a database file you can use this:
+
+    datasette data.db --create
+
+The `--create` option will create a new empty `data.db` database file if it does not already exist.
+
+The plugin adds an endpoint that allows data to be inserted or updated and tables to be created by POSTing JSON data to the following URL:
 
     /-/insert/name-of-database/name-of-table
 
@@ -42,12 +48,6 @@ The JSON should look like this:
 The first time data is posted to the URL a table of that name will be created if it does not aready exist, with the desired columns.
 
 You can specify which column should be used as the primary key using the `?pk=` URL argument.
-
-Start Datasette like this:
-
-    datasette data.db --create
-
-The `--create` option will create a new empty `data.db` database file if one does not already exist.
 
 Here's how to POST to a database and create a new table using the Python `requests` library:
 
@@ -130,6 +130,24 @@ curl --request POST \
     ]' \
     'http://localhost:8001/-/insert/data/dogs?alter=1'
 ```
+
+## Upserting data
+
+An "upsert" operation can be used to partially update a record. With upserts you can send a subset of the keys and, if the ID matches the specified primary key, they will be used to update an existing record.
+
+Upserts can be sent to the `/-/upsert` API endpoint.
+
+This example will update the dog with ID=1's age from 5 to 7:
+```
+curl --request POST \
+  --data '{
+      "id": 1,
+      "age": 7
+    }' \
+    'http://localhost:3322/-/upsert/data/dogs?pk=id'
+```
+Like the `/-/insert` endpoint, the `/-/upsert` endpoint can accept an array of objects too. It also supports the `?alter=1` option.
+
 ## Permissions and authentication
 
 This plugin defaults to denying all access, to help ensure people don't accidentally deploy it on the open internet in an unsafe configuration.
@@ -219,12 +237,8 @@ Plugins that implement the [permission_allowed()](https://datasette.readthedocs.
 To set up this plugin locally, first checkout the code. Then create a new virtual environment:
 
     cd datasette-insert
-    python3 -mvenv venv
+    python3 -m venv venv
     source venv/bin/activate
-
-Or if you are using `pipenv`:
-
-    pipenv shell
 
 Now install the dependencies and tests:
 
