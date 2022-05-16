@@ -67,7 +67,8 @@ async def test_permission_denied_by_default(ds):
     app = ds.app()
     async with httpx.AsyncClient(app=app) as client:
         response = await client.post(
-            "http://localhost/-/insert/data/newtable", json=[{"foo": "bar"}],
+            "http://localhost/-/insert/data/newtable",
+            json=[{"foo": "bar"}],
         )
         assert 403 == response.status_code
 
@@ -183,42 +184,66 @@ async def test_permission_allowed_by_allow_block(ds_root_only):
     [
         # insert-update allowed
         (
-            {"insert-update": True, "create-table": False, "alter-table": False,},
+            {
+                "insert-update": True,
+                "create-table": False,
+                "alter-table": False,
+            },
             "insert-update",
             200,
             None,
         ),
         # insert-update denied
         (
-            {"insert-update": False, "create-table": False, "alter-table": False,},
+            {
+                "insert-update": False,
+                "create-table": False,
+                "alter-table": False,
+            },
             "insert-update",
             403,
             "Permission denied",
         ),
         # create-table allowed
         (
-            {"insert-update": True, "create-table": True, "alter-table": False,},
+            {
+                "insert-update": True,
+                "create-table": True,
+                "alter-table": False,
+            },
             "create-table",
             200,
             None,
         ),
         # create-table denied
         (
-            {"insert-update": True, "create-table": False, "alter-table": False,},
+            {
+                "insert-update": True,
+                "create-table": False,
+                "alter-table": False,
+            },
             "create-table",
             400,
             "Table dogs does not exist",
         ),
         # Alter table allowed
         (
-            {"insert-update": True, "create-table": False, "alter-table": True,},
+            {
+                "insert-update": True,
+                "create-table": False,
+                "alter-table": True,
+            },
             "alter-table",
             200,
             None,
         ),
         # Alter table denied
         (
-            {"insert-update": True, "create-table": False, "alter-table": False,},
+            {
+                "insert-update": True,
+                "create-table": False,
+                "alter-table": False,
+            },
             "alter-table",
             400,
             "table dogs has no column named weight",
