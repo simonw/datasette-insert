@@ -334,3 +334,20 @@ async def test_permission_finely_grained(
 
 async def rows(client):
     return (await client.get("/data/dogs.json?_shape=array")).json()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("cors_enabled", (True, False))
+async def test_cors(db_path, unsafe, cors_enabled):
+    ds = Datasette([db_path], cors=cors_enabled)
+    response = await ds.client.options("/-/insert/data/dogs?pk=id")
+    assert response.status_code == 200
+    desired_headers = {
+        "access-control-allow-headers": "content-type,authorization",
+        "access-control-allow-methods": "POST",
+        "access-control-allow-origin": "*",
+    }.items()
+    if cors_enabled:
+        assert desired_headers <= dict(response.headers).items()
+    else:
+        assert not desired_headers <= dict(response.headers).items()

@@ -10,10 +10,25 @@ class MissingTable(Exception):
 
 
 async def insert_or_upsert(request, datasette):
+    # Wraps insert_or_upsert_implementation with CORS
+    response = await insert_or_upsert_implementation(request, datasette)
+    if datasette.cors:
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "content-type,authorization"
+        response.headers["Access-Control-Allow-Methods"] = "POST"
+    return response
+
+
+async def insert_or_upsert_implementation(request, datasette):
     database = request.url_vars["database"]
     table = request.url_vars["table"]
     upsert = request.url_vars["verb"] == "upsert"
     db = datasette.get_database(database)
+
+    # Needed for CORS:
+    if request.method == "OPTIONS":
+        return Response.text("ok")
+
     pk = request.args.get("pk")
     alter = request.args.get("alter")
 
