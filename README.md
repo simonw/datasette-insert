@@ -232,6 +232,14 @@ You can use plugins like [datasette-permissions-sql](https://github.com/simonw/d
 
 Plugins that implement the [permission_allowed()](https://datasette.readthedocs.io/en/stable/plugin_hooks.html#plugin-hook-permission-allowed) plugin hook can take full control over these permission decisions.
 
+## CORS
+
+If you start Datasette with the `datasette --cors` option the following HTTP headers will be added to resources served by this plugin:
+
+    Access-Control-Allow-Origin: *
+    Access-Control-Allow-Headers: content-type,authorization
+    Access-Control-Allow-Methods: POST
+
 ## Development
 
 To set up this plugin locally, first checkout the code. Then create a new virtual environment:
