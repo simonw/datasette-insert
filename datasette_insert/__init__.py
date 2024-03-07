@@ -77,6 +77,8 @@ async def insert_or_upsert_implementation(request, datasette):
     if isinstance(post_json, dict):
         post_json = [post_json]
 
+    post_json = (sqlite_utils.utils.decode_base64_values(doc) for doc in post_json)
+
     def write_in_thread(conn):
         db = sqlite_utils.Database(conn)
         if not allow_create_table and not db[table].exists():
