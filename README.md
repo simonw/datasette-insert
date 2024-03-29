@@ -6,6 +6,8 @@
 
 Datasette plugin for inserting and updating data
 
+**No longer necessary with Datasette 1.0**. Use the [JSON write API](https://docs.datasette.io/en/latest/json_api.html#the-json-write-api) instead.
+
 ## Installation
 
 Install this plugin in the same environment as Datasette.
